@@ -100,13 +100,11 @@ class Individual_Grid(object):
     # Create zero or more children from self and other
     def generate_children(self, other):
         new_genome = copy.deepcopy(self.genome)
+        new_genome2 = copy.deepcopy(other.genome)
         # Leaving first and last columns alone...
         # do crossover with other
         left = 1
         right = width - 1
-        # other_first = true means that the crossover starts with the other genome
-        # Otherwise, crossover with self first
-        other_first = random.choice([True, False])
         # Split the genome into four quadrants
         p1 = right // 4 + random.randint(-width // 8, width // 8)
         p2 = 2* right // 4 + random.randint(-width // 8, width // 8)
@@ -118,16 +116,16 @@ class Individual_Grid(object):
                 # Am currently getting an index out of bounds here...
                 # I think new_genome is copied from self genome so we only have to replace with other where we want 
                 # Can even split it up into four quandrants if we want to get fancy widdit
-                if other_first:
-                    if ((x > p1 and x <= p2) or (x > p3)):
-                        new_genome[y][x] = other.genome[y][x]
-                else: # Self first
-                    if ((x <= p1) or (x > p2 and x <= p3)):
-                        new_genome[y][x] = other.genome[y][x]
+                # 4 Point crossover, with two children being opposite crossovers of the genomes
+                if ((x > p1 and x <= p2) or (x > p3)):
+                    new_genome[y][x] = other.genome[y][x]
+                else:
+                    new_genome2[y][x] = other.genome[y][x]
                 # STUDENT consider putting more constraints on this to prevent pipes in the air, etc
         # do mutation; note we're returning a one-element tuple here
         new_genome = self.mutate(new_genome)
-        return (Individual_Grid(new_genome),)
+        new_genome2 = self.mutate(new_genome2)
+        return (Individual_Grid(new_genome),Individual_Grid(new_genome2))
 
     # Turn the genome into a level string (easy for this genome)
     def to_level(self):
