@@ -68,7 +68,7 @@ class Individual_Grid(object):
         # STUDENT also consider weighting the different tile types so it's not uniformly random
         # STUDENT consider putting more constraints on this to prevent pipes in the air, etc
         
-        # So far I am trying to mutate around 30% of the genome and then from there randomly selecting another block/tile
+        # So far I am trying to mutate around 10% of the genome and then from there randomly selecting another block/tile
         # replace it 
         left = 1
         right = width - 1
@@ -390,8 +390,10 @@ def generate_successors(population):
     for i in range(len(population) // 2):
         topHalfRandom1 = random.randint(0,len(population) // 2)
         topHalfRandom2 = random.randint(0,len(population) // 2)
-        results.append(population[topHalfRandom1].generate_children(population[topHalfRandom2])[0])
-    for j in range(len(population) // 2):
+        child1, child2 = population[topHalfRandom1].generate_children(population[topHalfRandom2])
+        results.append(child1)
+        results.append(child2)
+    for j in range(len(population) // 2, len(population)):
         results.append(population[j])
     return results
 
@@ -437,7 +439,7 @@ def ga():
                 generation += 1
                 # STUDENT Determine stopping condition
                 stop_condition = False
-                if stop_condition:
+                if generation >= 10:
                     break
                 # STUDENT Also consider using FI-2POP as in the Sorenson & Pasquier paper
                 gentime = time.time()
