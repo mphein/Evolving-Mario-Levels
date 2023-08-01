@@ -74,8 +74,8 @@ class Individual_Grid(object):
         right = width - 1
         for y in range(height):
             for x in range(left, right):
-                mutate = random.randint(1, 9)
-                if mutate % 3 == 0:
+                mutate = random.randint(1, 100)
+                if mutate % 10 == 0:
                     randNum = random.randint(1,9)
                     if randNum == 1:
                         genome[y][x] = "-"
@@ -383,7 +383,7 @@ def generate_successors(population):
         topHalfRandom1 = random.randint(0,len(population) // 2)
         topHalfRandom2 = random.randint(0,len(population) // 2)
         results.append(population[topHalfRandom1].generate_children(population[topHalfRandom2])[0])
-    for j in range(len(population) // 2, len(population)):
+    for j in range(len(population) // 2):
         results.append(population[j])
     return results
 
@@ -423,6 +423,7 @@ def ga():
                     print("Average generation time:", (now - start) / generation)
                     print("Net time:", now - start)
                     with open("levels/last.txt", 'w') as f:
+                        f.write("Max fitness:" + str(best.fitness()))
                         for row in best.to_level():
                             f.write("".join(row) + "\n")
                 generation += 1
