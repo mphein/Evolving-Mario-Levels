@@ -104,7 +104,13 @@ class Individual_Grid(object):
         # do crossover with other
         left = 1
         right = width - 1
-        print(other.genome)
+        # other_first = true means that the crossover starts with the other genome
+        # Otherwise, crossover with self first
+        other_first = random.choice([True, False])
+        # Split the genome into four quadrants
+        p1 = right // 4 + random.randint(-width // 8, width // 8)
+        p2 = 2* right // 4 + random.randint(-width // 8, width // 8)
+        p3 = 3* right // 4 + random.randint(-width // 8, width // 8)
         for y in range(height):
             for x in range(left, right):
                 # STUDENT Which one should you take?  Self, or other?  Why?
@@ -112,8 +118,12 @@ class Individual_Grid(object):
                 # Am currently getting an index out of bounds here...
                 # I think new_genome is copied from self genome so we only have to replace with other where we want 
                 # Can even split it up into four quandrants if we want to get fancy widdit
-                if (x <= right // 2):
-                    new_genome[y][x] = other.genome[y][x]
+                if other_first:
+                    if ((x > p1 and x <= p2) or (x > p3)):
+                        new_genome[y][x] = other.genome[y][x]
+                else: # Self first
+                    if ((x <= p1) or (x > p2 and x <= p3)):
+                        new_genome[y][x] = other.genome[y][x]
                 # STUDENT consider putting more constraints on this to prevent pipes in the air, etc
         # do mutation; note we're returning a one-element tuple here
         new_genome = self.mutate(new_genome)
