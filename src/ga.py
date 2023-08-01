@@ -78,23 +78,23 @@ class Individual_Grid(object):
                 if mutate % 3 == 0:
                     randNum = random.randint(1,9)
                     if randNum == 1:
-                        genome[x][y] = "-"
+                        genome[y][x] = "-"
                     elif randNum == 2:
-                        genome[x][y] = "X"
+                        genome[y][x] = "X"
                     elif randNum == 3:
-                        genome[x][y] = "?"
+                        genome[y][x] = "?"
                     elif randNum == 4:
-                        genome[x][y] = "M"
+                        genome[y][x] = "M"
                     elif randNum == 5:
-                        genome[x][y] = "B"
+                        genome[y][x] = "B"
                     elif randNum == 6:
-                        genome[x][y] = "o"
+                        genome[y][x] = "o"
                     elif randNum == 7:
-                        genome[x][y] = "|"
+                        genome[y][x] = "|"
                     elif randNum == 8:
-                        genome[x][y] = "T"
+                        genome[y][x] = "T"
                     elif randNum == 9:
-                        genome[x][y] = "E"
+                        genome[y][x] = "E"
         return genome
 
     # Create zero or more children from self and other
@@ -102,10 +102,9 @@ class Individual_Grid(object):
         new_genome = copy.deepcopy(self.genome)
         # Leaving first and last columns alone...
         # do crossover with other
-        print(self.genome)
-        print(self.genome[1][4])
         left = 1
         right = width - 1
+        print(other.genome)
         for y in range(height):
             for x in range(left, right):
                 # STUDENT Which one should you take?  Self, or other?  Why?
@@ -114,7 +113,7 @@ class Individual_Grid(object):
                 # I think new_genome is copied from self genome so we only have to replace with other where we want 
                 # Can even split it up into four quandrants if we want to get fancy widdit
                 if (x <= right // 2):
-                    new_genome[x][y] = other.genome[x][y]
+                    new_genome[y][x] = other.genome[y][x]
                 # STUDENT consider putting more constraints on this to prevent pipes in the air, etc
         # do mutation; note we're returning a one-element tuple here
         new_genome = self.mutate(new_genome)
@@ -383,9 +382,10 @@ def generate_successors(population):
     for i in range(len(population) // 2):
         topHalfRandom1 = random.randint(0,len(population) // 2)
         topHalfRandom2 = random.randint(0,len(population) // 2)
-        results[i] = population[topHalfRandom1].generate_children(population[topHalfRandom2])
+        results.append(population[topHalfRandom1].generate_children(population[topHalfRandom2]))
     for j in range(len(population) // 2, len(population)):
-        results[j] = population[j]
+        results.append(population[j])
+        print(results)
     return results
 
 
