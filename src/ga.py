@@ -382,10 +382,9 @@ def generate_successors(population):
     for i in range(len(population) // 2):
         topHalfRandom1 = random.randint(0,len(population) // 2)
         topHalfRandom2 = random.randint(0,len(population) // 2)
-        results.append(population[topHalfRandom1].generate_children(population[topHalfRandom2]))
+        results.append(population[topHalfRandom1].generate_children(population[topHalfRandom2])[0])
     for j in range(len(population) // 2, len(population)):
         results.append(population[j])
-        print(results)
     return results
 
 
