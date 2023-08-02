@@ -72,29 +72,38 @@ class Individual_Grid(object):
         # replace it 
         left = 1
         right = width - 1
-        for y in range(height):
+        for y in range(1, height - 1):
             for x in range(left, right):
                 mutate = random.randint(1, 100)
-                if mutate % 10 == 0:
-                    randNum = random.randint(1,9)
-                    if randNum == 1:
-                        genome[y][x] = "-"
-                    elif randNum == 2:
-                        genome[y][x] = "X"
-                    elif randNum == 3:
-                        genome[y][x] = "?"
-                    elif randNum == 4:
-                        genome[y][x] = "M"
-                    elif randNum == 5:
-                        genome[y][x] = "B"
-                    elif randNum == 6:
-                        genome[y][x] = "o"
-                    elif randNum == 7:
-                        genome[y][x] = "|"
-                    elif randNum == 8:
-                        genome[y][x] = "T"
-                    elif randNum == 9:
-                        genome[y][x] = "E"
+                if mutate % 100 == 0:
+                    if y < 14:
+                        if genome[y+1][x] == "T" and genome[y+2][x] == "T":
+                            pass
+                    if genome[y][x] == "|":
+                        pass
+                    else:
+                        randNum = random.randint(1,8)
+                        if randNum == 1:
+                            genome[y][x] = "-"
+                        elif randNum == 2:
+                            genome[y][x] = "X"
+                        elif randNum == 3:
+                            genome[y][x] = "?"
+                        elif randNum == 4:
+                            genome[y][x] = "M"
+                        elif randNum == 5:
+                            genome[y][x] = "B"
+                        elif randNum == 6:
+                            genome[y][x] = "o"
+                        elif randNum == 7:
+                            if y >= 11:
+                                genome[y][x] = "T"
+                                start = y
+                                while(start < 14):
+                                    genome[start+1][x] = "|"
+                                    start+=1
+                        elif randNum == 8:
+                            genome[y][x] = "E"
         return genome
 
     # Create zero or more children from self and other
@@ -388,12 +397,12 @@ def generate_successors(population):
     # This repeats for the first half and fills results
     # Then you take all the rest of the maps not used (Could be replaced with the top half maps unchanged and appended)
     for i in range(len(population) // 2):
-        topHalfRandom1 = random.randint(0,len(population) // 2)
-        topHalfRandom2 = random.randint(0,len(population) // 2)
+        topHalfRandom1 = i
+        topHalfRandom2 = random.randint(0 , len(population)-1)
         child1, child2 = population[topHalfRandom1].generate_children(population[topHalfRandom2])
         results.append(child1)
         results.append(child2)
-    for j in range(len(population) // 2, len(population)):
+    for j in range(len(population) // 2):
         results.append(population[j])
     return results
 
@@ -433,7 +442,6 @@ def ga():
                     print("Average generation time:", (now - start) / generation)
                     print("Net time:", now - start)
                     with open("levels/last.txt", 'w') as f:
-                        f.write("Max fitness:" + str(best.fitness()))
                         for row in best.to_level():
                             f.write("".join(row) + "\n")
                 generation += 1
