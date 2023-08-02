@@ -110,8 +110,6 @@ class Individual_Grid(object):
     def generate_children(self, other):
         new_genome = copy.deepcopy(self.genome)
         new_genome2 = copy.deepcopy(other.genome)
-        # Leaving first and last columns alone...
-        # do crossover with other
         left = 1
         right = width - 1
         # Split the genome into four quadrants
@@ -121,17 +119,14 @@ class Individual_Grid(object):
         for y in range(height):
             for x in range(left, right):
                 # STUDENT Which one should you take?  Self, or other?  Why?
+                # STUDENT consider putting more constraints on this to prevent pipes in the air, etc
                 # Trying to take left half and replace with the other's genome at that position
-                # Am currently getting an index out of bounds here...
-                # I think new_genome is copied from self genome so we only have to replace with other where we want 
-                # Can even split it up into four quandrants if we want to get fancy widdit
-                # 4 Point crossover, with two children being opposite crossovers of the genomes
-                if ((x > p1 and x <= p2) or (x > p3)):
+                # Multi-point crossover (4 points), producing two opposite children
+                if ((x > p1 and x <= p2) or (x > p3)):                                                
                     new_genome[y][x] = other.genome[y][x]
                 else:
                     new_genome2[y][x] = other.genome[y][x]
-                # STUDENT consider putting more constraints on this to prevent pipes in the air, etc
-        # do mutation; note we're returning a one-element tuple here
+        # Mutate
         new_genome = self.mutate(new_genome)
         new_genome2 = self.mutate(new_genome2)
         return (Individual_Grid(new_genome),Individual_Grid(new_genome2))
@@ -199,6 +194,7 @@ class Individual_DE(object):
 
     # Calculate and cache fitness
     def calculate_fitness(self):
+        # Print num of design elements
         measurements = metrics.metrics(self.to_level())
         # Default fitness function: Just some arbitrary combination of a few criteria.  Is it good?  Who knows?
         # STUDENT Add more metrics?
@@ -212,12 +208,73 @@ class Individual_DE(object):
             solvability=2.0
         )
         penalties = 0
-        # STUDENT For example, too many stairs are unaesthetic.  Let's penalize that
-        if len(list(filter(lambda de: de[1] == "6_stairs", self.genome))) > 5:
-            penalties -= 2
+        de_score = 0
+    
+        if len(self.genome) < 20 or len(self.genome) > 80:
+            de_score = -10
+        elif len(self.genome) < 30 or len(self.genome) > 70:
+            de_score = -5
+        else:
+            de_score = 5
+        
+        # Check for too many or too little of each type of design element
+        if len(list(filter(lambda de: de[1] == "0_hole", self.genome))) > 1/6 * len(self.genome):
+            penalties += 1
+        elif len(list(filter(lambda de: de[1] == "0_hole", self.genome))) < 1/10 * len(self.genome):
+            penalties += 1
+        else:
+            penalties -= 1
+        if len(list(filter(lambda de: de[1] == "1_platform", self.genome))) > 1/6 * len(self.genome):
+            penalties += 1
+        elif len(list(filter(lambda de: de[1] == "1_platform", self.genome))) < 1/10 * len(self.genome):
+            penalties += 1
+        else:
+            penalties -= 1
+        if len(list(filter(lambda de: de[1] == "2_enemy", self.genome))) > 1/6 * len(self.genome):
+            penalties += 1
+        elif len(list(filter(lambda de: de[1] == "2_enemy", self.genome))) < 1/10 * len(self.genome):
+            penalties += 1
+        else:
+            penalties -= 1
+        if len(list(filter(lambda de: de[1] == "3_coin", self.genome))) > 1/6 * len(self.genome):
+            penalties += 1
+        elif len(list(filter(lambda de: de[1] == "3_coin", self.genome))) < 1/10 * len(self.genome):
+            penalties += 1
+        else:
+            penalties -= 1
+        if len(list(filter(lambda de: de[1] == "4_block", self.genome))) > 1/6 * len(self.genome):
+            penalties += 1
+        elif len(list(filter(lambda de: de[1] == "4_block", self.genome))) < 1/10 * len(self.genome):
+            penalties += 1
+        else:
+            penalties -= 1
+        if len(list(filter(lambda de: de[1] == "5_qblock", self.genome))) > 1/6 * len(self.genome):
+            penalties += 1
+        elif len(list(filter(lambda de: de[1] == "5_qblock", self.genome))) < 1/10 * len(self.genome):
+            penalties += 1
+        else:
+            penalties -= 1
+        if len(list(filter(lambda de: de[1] == "6_stairs", self.genome))) > 1/6 * len(self.genome):
+            penalties += 1
+        elif len(list(filter(lambda de: de[1] == "6_stairs", self.genome)))< 1/10 * len(self.genome):
+            penalties += 1
+        else:
+            penalties -= 1
+        if len(list(filter(lambda de: de[1] == "7_pipe", self.genome))) > 1/6 * len(self.genome):
+            penalties += 1
+        elif len(list(filter(lambda de: de[1] == "7_pipe", self.genome))) < 1/10 * len(self.genome):
+            penalties += 1
+        else:
+            penalties -= 1
+        
+        if penalties < 0:
+            penalty_amt = 0
+        else:
+            penalty_amt = -2 * penalties / 8
+        # Needs enough coins and powerups
         # STUDENT If you go for the FI-2POP extra credit, you can put constraint calculation in here too and cache it in a new entry in __slots__.
         self._fitness = sum(map(lambda m: coefficients[m] * measurements[m],
-                                coefficients)) + penalties
+                                coefficients)) + penalty_amt + de_score
         return self
 
     def fitness(self):
@@ -301,14 +358,27 @@ class Individual_DE(object):
                 new_de = (x, de_type, w, y, madeof)
             elif de_type == "2_enemy":
                 pass
+            # If no enemy or qblock, add them
+            if len(list(filter(lambda de: de[1] == "2_enemy", new_genome))) == 0:
+                new_genome.append((random.randint(1, width - 2), "2_enemy"))
+            if len(list(filter(lambda de: de[1] == "5_qblock", new_genome))) == 0:
+                new_genome.append((random.randint(1, width - 2), "5_qblock", random.randint(0, height - 1), random.choice([True, False])))
             new_genome.pop(to_change)
             heapq.heappush(new_genome, new_de)
         return new_genome
 
     def generate_children(self, other):
         # STUDENT How does this work?  Explain it in your writeup.
-        pa = random.randint(0, len(self.genome) - 1)
-        pb = random.randint(0, len(other.genome) - 1)
+        if len(self.genome) > 0:
+            pa = random.randint(0, len(self.genome) - 1)
+        else:
+            pa = None
+        if len(other.genome) > 0:
+            pb = random.randint(0, len(other.genome) - 1)
+        else:
+            pb = None
+        # pa = random.randint(0, len(self.genome) - 1)
+        # pb = random.randint(0, len(other.genome) - 1)
         a_part = self.genome[:pa] if len(self.genome) > 0 else []
         b_part = other.genome[pb:] if len(other.genome) > 0 else []
         ga = a_part + b_part
@@ -380,14 +450,13 @@ class Individual_DE(object):
             (random.randint(1, width - 2), "3_coin", random.randint(0, height - 1)),
             (random.randint(1, width - 2), "4_block", random.randint(0, height - 1), random.choice([True, False])),
             (random.randint(1, width - 2), "5_qblock", random.randint(0, height - 1), random.choice([True, False])),
-            (random.randint(1, width - 2), "6_stairs", random.randint(1, height - 4), random.choice([-1, 1])),
+            (random.randint(1, width - 2), "6_stairs", random.randint(1, height - 7), random.choice([-1, 1])),
             (random.randint(1, width - 2), "7_pipe", random.randint(2, height - 4))
         ]) for i in range(elt_count)]
         return Individual_DE(g)
 
 
-Individual = Individual_Grid
-
+Individual = Individual_DE
 
 def generate_successors(population):
     results = []
@@ -396,6 +465,10 @@ def generate_successors(population):
     # I hope it takes two different genomes from the top half of the population and generates one child from there
     # This repeats for the first half and fills results
     # Then you take all the rest of the maps not used (Could be replaced with the top half maps unchanged and appended)
+    # print(len(population))
+    # child1, child2 = population[0].generate_children(population[1])
+    # results.append(child1)
+    # results.append(child2)
     for i in range(len(population) // 2):
         topHalfRandom1 = i
         topHalfRandom2 = random.randint(0 , len(population)-1)
@@ -446,8 +519,12 @@ def ga():
                             f.write("".join(row) + "\n")
                 generation += 1
                 # STUDENT Determine stopping condition
-                stop_condition = False
-                if generation >= 10:
+                # If max fitness is > 5, stop
+                stop_condition = True
+                for i in population:
+                    if i.fitness() > 8:
+                        break
+                if generation >= 80:
                     break
                 # STUDENT Also consider using FI-2POP as in the Sorenson & Pasquier paper
                 gentime = time.time()
