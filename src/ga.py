@@ -54,6 +54,7 @@ class Individual_Grid(object):
         )
         self._fitness = sum(map(lambda m: coefficients[m] * measurements[m],
                                 coefficients))
+        
         return self
 
     # Return the cached fitness value or calculate it as needed.
@@ -426,6 +427,7 @@ def ga():
                         f.write("Max fitness:" + str(best.fitness()))
                         for row in best.to_level():
                             f.write("".join(row) + "\n")
+                    exit()
                 generation += 1
                 # STUDENT Determine stopping condition
                 stop_condition = False
